@@ -151,7 +151,7 @@
         const updateButton = document.createElement('button');
         updateButton.textContent = 'Vérifier les mises à jour'; // Texte du bouton
         updateButton.style.position = 'absolute'; // Positionnement absolu
-        updateButton.style.top = '100px'; // Position verticale
+        updateButton.style.top = '110px'; // Position verticale
         updateButton.style.right = '10px'; // Position horizontale
         updateButton.style.zIndex = '9999'; // Assurer que le bouton est au-dessus de tout
         updateButton.style.padding = '10px'; // Espacement interne
@@ -173,7 +173,7 @@
         const formatButton = document.createElement('button');
         formatButton.textContent = 'Formater le code'; // Texte du bouton
         formatButton.style.position = 'absolute'; // Positionnement absolu
-        formatButton.style.top = '140px'; // Position verticale
+        formatButton.style.top = '150px'; // Position verticale
         formatButton.style.right = '10px'; // Position horizontale
         formatButton.style.zIndex = '9999'; // Assurer que le bouton est au-dessus de tout
         formatButton.style.padding = '10px'; // Espacement interne
