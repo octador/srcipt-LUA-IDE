@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         IDE LUA
 // @namespace    http://tampermonkey1.net/
-// @version      1.91
+// @version      1.91.1
 // @description  Applique une coloration syntaxique avec CodeMirror dans MediaWiki avec gestion de la touche Tab, auto-complétion améliorée, mise en forme automatique, et vérification des mises à jour
 // @author       octador
 // @match        https://www.flow-vivantes.eu/RocketToMars/index.php?title=Module:*&action=edit
@@ -173,7 +173,7 @@
         const formatButton = document.createElement('button');
         formatButton.textContent = 'Formater le code'; // Texte du bouton
         formatButton.style.position = 'absolute'; // Positionnement absolu
-        formatButton.style.top = '150px'; // Position verticale
+        formatButton.style.top = '160px'; // Position verticale
         formatButton.style.right = '10px'; // Position horizontale
         formatButton.style.zIndex = '9999'; // Assurer que le bouton est au-dessus de tout
         formatButton.style.padding = '10px'; // Espacement interne
