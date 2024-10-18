@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Coloration Syntaxique pour MediaWiki avec CodeMirror
-// @namespace    http://tampermonkey.net/
-// @version      1.7
+// @namespace    http://tampermonkey1.net/
+// @version      1.75
 // @description  Applique une coloration syntaxique avec CodeMirror dans MediaWiki avec gestion de la touche Tab, auto-complétion améliorée, et mise en forme automatique
 // @author       octador
 // @match        https://www.flow-vivantes.eu/RocketToMars/index.php?title=Module:*&action=edit
@@ -14,6 +14,8 @@
 // @resource     show_hint_css https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/addon/hint/show-hint.min.css
 // @resource     lint_css https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/addon/lint/lint.min.css
 // @grant        GM_addStyle
+// @updateURL    https://raw.githubusercontent.com/octador/srcipt-LUA-IDE/main/violentMonkey.js
+// @downloadURL  https://raw.githubusercontent.com/octador/srcipt-LUA-IDE/main/violentMonkey.js
 // ==/UserScript==
 
 (function() {
@@ -67,7 +69,84 @@
 
         // Ajouter des suggestions d'auto-complétion personnalisées
         CodeMirror.registerHelper("hint", "lua", function(cm) {
-            const keywords = ["function", "end", "if", "then", "else", "elseif", "for", "in", "do", "while", "repeat", "until", "local", "return", "require", "module"];
+            const keywords = [
+                "function",
+                "end",
+                "if",
+                "then",
+                "else",
+                "elseif",
+                "for",
+                "in",
+                "do",
+                "while",
+                "repeat",
+                "until",
+                "local",
+                "return",
+                "require",
+                "module",
+                "table",
+                "true",
+                "false",
+                "nil",
+                "and",
+                "or",
+                "not",
+                "+",
+                "-",
+                "*",
+                "/",
+                "%",
+                "==",
+                "~=",
+                "<",
+                ">",
+                "<=",
+                ">=",
+                "math",
+                "string",
+                "os",
+                "io",
+                "pairs",
+                "ipairs",
+                "table.insert",
+                "table.remove",
+                "table.concat",
+                "setmetatable",
+                "getmetatable",
+                "pcall",
+                "xpcall",
+                "error",
+                "mw",
+                "mw.title",
+                "mw.smw",
+                "mw.language",
+                "mw.message",
+                "ask",
+                "query",
+                "property",
+                "category",
+                "template",
+                "frame",          // Utilisé pour accéder aux arguments du modèle
+                "args",           // Les arguments passés à un modèle
+                "title",          // Le titre de la page
+                "page",           // Représente une page MediaWiki
+                "getCurrentTitle",// Récupère le titre de la page en cours
+                "getContent",     // Récupère le contenu d'une page
+                "getNamespace",   // Récupère le namespace d'une page
+                "getPage",        // Récupère une page MediaWiki
+                "getRevision",    // Récupère une révision d'une page
+                "getArgs",        // Récupère les arguments d'un appel de modèle
+                "getArgsTable",   // Récupère une table d'arguments
+                "addMessage",     // Ajoute un message à la sortie
+                "edit",           // Permet d'éditer une page
+                "setData",        // Définit les données pour une page
+                "getData",        // Récupère les données d'une page
+                "setTitle",       // Définit le titre d'une page
+                "getNamespace"    // Obtient le namespace d'une page
+            ];
+
             const cur = cm.getCursor();
             const token = cm.getTokenAt(cur);
             const start = token.start;
@@ -126,58 +205,41 @@
                 textarea.style.display = 'block';
             }
         });
+
+        // Ajouter le bouton de mise à jour
+        const updateButton = document.createElement('button');
+        updateButton.textContent = 'Vérifier les mises à jour';
+        updateButton.style.position = 'absolute';
+        updateButton.style.top = '100px'; // Positionnez sous le bouton précédent
+        updateButton.style.right = '10px';
+        updateButton.style.zIndex = '9999';
+        updateButton.style.padding = '10px';
+        updateButton.style.backgroundColor = '#28a745'; // Couleur de fond du bouton de mise à jour
+        updateButton.style.color = 'white'; // Couleur du texte
+        updateButton.style.border = 'none';
+        updateButton.style.borderRadius = '5px';
+        updateButton.style.cursor = 'pointer';
+
+        updateButton.addEventListener('click', function() {
+            // Vérifiez si une nouvelle version du script est disponible
+            fetch('https://raw.githubusercontent.com/octador/srcipt-LUA-IDE/main/violentMonkey.js')
+                .then(response => response.text())
+                .then(data => {
+                    const remoteVersionMatch = data.match(/@version\s+([\d.]+)/);
+                    if (remoteVersionMatch && remoteVersionMatch[1] !== '1.75') {
+                        alert('Une nouvelle version est disponible : ' + remoteVersionMatch[1]);
+                    } else {
+                        alert('Aucune mise à jour disponible.');
+                    }
+                })
+                .catch(err => console.error('Erreur lors de la vérification des mises à jour :', err));
+        });
+
+        // Ajoute les boutons au DOM
         document.body.appendChild(toggleButton);
-
-        // Ajouter le bouton de mise en forme
-        const formatButton = document.createElement('button');
-        formatButton.textContent = 'Mise en forme du code';
-        formatButton.style.position = 'absolute';
-        formatButton.style.top = '110px';
-        formatButton.style.right = '10px';
-        formatButton.style.zIndex = '9999'; // Assure que le bouton est au-dessus de tout
-        formatButton.style.padding = '10px';
-        formatButton.style.backgroundColor = '#28a745'; // Couleur de fond du bouton
-        formatButton.style.color = 'white'; // Couleur du texte
-        formatButton.style.border = 'none';
-        formatButton.style.borderRadius = '5px';
-        formatButton.style.cursor = 'pointer';
-
-        formatButton.addEventListener('click', function() {
-            // Appel à la fonction de mise en forme
-            const formattedCode = formatLuaCode(editor.getValue()); // Formate le code
-            editor.setValue(formattedCode); // Met à jour le contenu de l'éditeur
-            editor.focus(); // Récupère le focus sur l'éditeur après mise en forme
-        });
-        document.body.appendChild(formatButton);
+        document.body.appendChild(updateButton);
     }
 
-    // Fonction pour formater le code Lua
-    function formatLuaCode(code) {
-        const lines = code.split('\n');
-        const indentSize = 4; // Nombre d'espaces pour l'indentation
-        let indentLevel = 0;
-        let formattedLines = [];
-
-        lines.forEach(line => {
-            // Gérer l'indentation
-            const trimmedLine = line.trim();
-
-            // Applique l'indentation
-            const indent = ' '.repeat(indentLevel * indentSize);
-            formattedLines.push(indent + trimmedLine);
-
-            // Augmente ou diminue le niveau d'indentation si nécessaire
-            if (trimmedLine.endsWith('then') || trimmedLine.endsWith('do') || trimmedLine.endsWith('function')) {
-                indentLevel++;
-            }
-            if (trimmedLine.startsWith('end')) {
-                indentLevel = Math.max(0, indentLevel - 1);
-            }
-        });
-
-        return formattedLines.join('\n');
-    }
-
-    // Attendre 1 seconde avant d'initialiser
-    setTimeout(initializeCodeMirror, 200); // Initialisation différée de CodeMirror
+    // Attendre que la page soit complètement chargée avant d'initialiser CodeMirror
+    window.addEventListener('load', initializeCodeMirror);
 })();
