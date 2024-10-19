@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         IDE LUA
 // @namespace    http://tampermonkey1.net/
-// @version      2.1.1
+// @version      2.1.3
 // @description  Applique une coloration syntaxique avec CodeMirror dans MediaWiki avec gestion de la touche Tab, auto-complétion améliorée, mise en forme automatique, et vérification des mises à jour
 // @author       octador
 // @match        https://www.flow-vivantes.eu/RocketToMars/index.php?title=Module:*&action=edit
@@ -187,31 +187,6 @@ updateButton.addEventListener('click', function() {
             alert('La mise à jour a échoué. Veuillez réessayer.');
         });
 });
-
-
-        // Ajouter le bouton à la page
-        document.body.appendChild(updateButton);
-
-        // Ajouter le bouton pour formater le code
-        const formatButton = document.createElement('button');
-        formatButton.textContent = 'Formater le code'; // Texte du bouton
-        formatButton.style.position = 'absolute'; // Positionnement absolu
-        formatButton.style.top = '160px'; // Position verticale
-        formatButton.style.right = '10px'; // Position horizontale
-        formatButton.style.zIndex = '9999'; // Assurer que le bouton est au-dessus de tout
-        formatButton.style.padding = '5px'; // Espacement interne
-        formatButton.style.backgroundColor = '#ffc107'; // Couleur de fond du bouton
-        formatButton.style.color = 'black'; // Couleur du texte
-        formatButton.style.border = 'none'; // Pas de bordure
-        formatButton.style.borderRadius = '5px'; // Coins arrondis
-        formatButton.style.cursor = 'pointer'; // Curseur en main
-
-        // Événement pour formater le code
-        formatButton.addEventListener('click', function() {
-            const code = editor.getValue(); // Récupérer le code actuel
-            const formattedCode = formatLuaCode(code); // Formater le code Lua
-            editor.setValue(formattedCode); // Mettre à jour le code formaté dans CodeMirror
-        });
 
         // Fonction pour formater le code Lua
        function formatLuaCode(code) {
