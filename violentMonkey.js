@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         IDE LUA
 // @namespace    http://tampermonkey1.net/
-// @version      1.91.1
+// @version      2.0
 // @description  Applique une coloration syntaxique avec CodeMirror dans MediaWiki avec gestion de la touche Tab, auto-complétion améliorée, mise en forme automatique, et vérification des mises à jour
 // @author       octador
 // @match        https://www.flow-vivantes.eu/RocketToMars/index.php?title=Module:*&action=edit
@@ -149,7 +149,7 @@
 
         // Ajouter le bouton pour aller chercher les mises à jour
         const updateButton = document.createElement('button');
-        updateButton.textContent = 'Vérifier les mises à jour'; // Texte du bouton
+        updateButton.textContent = 'Vérifier les mises à jour IDE'; // Texte du bouton
         updateButton.style.position = 'absolute'; // Positionnement absolu
         updateButton.style.top = '110px'; // Position verticale
         updateButton.style.right = '10px'; // Position horizontale
@@ -191,17 +191,36 @@
         });
 
         // Fonction pour formater le code Lua
-        function formatLuaCode(code) {
-            // Logiciel de formatage simple (vous pouvez l'améliorer)
-            const lines = code.split('\n'); // Diviser le code en lignes
-            const indent = '    '; // Indentation de 4 espaces
-            const formattedLines = lines.map(line => {
-                // Retirer les espaces en trop et ajouter l'indentation
-                return line.trim().replace(/^\s+/g, '').replace(/(\s*[\(\{])\s*/g, '$1').replace(/\s*(\}\))/g, '$1');
-            });
+       function formatLuaCode(code) {
+    const lines = code.split('\n'); // Diviser le code en lignes
+    const indent = '    '; // Indentation de 4 espaces
+    let currentIndent = ''; // Indentation actuelle
+    const formattedLines = []; // Tableau pour stocker les lignes formatées
 
-            return formattedLines.join('\n').replace(/^\s+/g, indent); // Rejoindre les lignes formatées
+    // Mots-clés qui ouvrent ou ferment des blocs en Lua
+    const openBlockKeywords = ['function', 'if', 'for', 'while', 'do', 'repeat'];
+    const closeBlockKeywords = ['end', 'until'];
+
+    lines.forEach(line => {
+        let trimmedLine = line.trim(); // Retirer les espaces en début/fin de ligne
+
+        // Si la ligne contient un mot-clé de fermeture de bloc, on réduit l'indentation
+        if (closeBlockKeywords.some(keyword => trimmedLine.startsWith(keyword))) {
+            currentIndent = currentIndent.slice(0, -indent.length); // Réduire l'indentation
         }
+
+        // Ajouter la ligne avec l'indentation actuelle
+        formattedLines.push(currentIndent + trimmedLine);
+
+        // Si la ligne contient un mot-clé d'ouverture de bloc, on augmente l'indentation
+        if (openBlockKeywords.some(keyword => trimmedLine.startsWith(keyword))) {
+            currentIndent += indent; // Augmenter l'indentation pour les lignes suivantes
+        }
+    });
+
+    return formattedLines.join('\n'); // Rejoindre les lignes formatées en un seul bloc
+}
+
 
         // Ajouter le bouton à la page
         document.body.appendChild(formatButton);
@@ -211,4 +230,4 @@
     if (!editor) {
         initializeCodeMirror(); // Appeler la fonction d'initialisation
     }
-})(); 
+})();
