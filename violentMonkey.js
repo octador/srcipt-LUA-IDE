@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         IDE LUA
 // @namespace    http://tampermonkey1.net/
-// @version      2.1.5
+// @version      2.1.6
 // @description  Applique une coloration syntaxique avec CodeMirror dans MediaWiki avec gestion de la touche Tab, auto-complétion améliorée, mise en forme automatique, et vérification des mises à jour
 // @author       octador
 // @match        https://www.flow-vivantes.eu/RocketToMars/index.php?title=Module:*&action=edit
@@ -139,55 +139,72 @@
             const formattedLines = []; // Tableau pour stocker les lignes formatées
 
             // Mots-clés qui ouvrent ou ferment des blocs en Lua
-            const openBlockKeywords = ['function', 'if', 'for', 'while', 'do', 'repeat'];
-            const closeBlockKeywords = ['end', 'until'];
+            const openBlockKeywords = ['function', 'if', 'for', 'while', 'repeat', '{'];
+            const closeBlockKeywords = ['end', 'else', 'elseif', '}', 'until'];
 
-            lines.forEach(line => {
-                let trimmedLine = line.trim(); // Retirer les espaces en début/fin de ligne
+            // Parcourir chaque ligne de code
+            for (let line of lines) {
+                const trimmedLine = line.trim(); // Supprimer les espaces en début et fin de ligne
 
-                // Si la ligne contient un mot-clé de fermeture de bloc, on réduit l'indentation
-                if (closeBlockKeywords.some(keyword => trimmedLine.startsWith(keyword))) {
-                    currentIndent = currentIndent.slice(0, -indent.length); // Réduire l'indentation
-                }
-
-                // Ajouter la ligne avec l'indentation actuelle
-                formattedLines.push(currentIndent + trimmedLine);
-
-                // Si la ligne contient un mot-clé d'ouverture de bloc, on augmente l'indentation
+                // Ajouter indentation pour les blocs ouverts
                 if (openBlockKeywords.some(keyword => trimmedLine.startsWith(keyword))) {
-                    currentIndent += indent; // Augmenter l'indentation pour les lignes suivantes
+                    formattedLines.push(currentIndent + trimmedLine); // Ajouter la ligne avec l'indentation actuelle
+                    currentIndent += indent; // Augmenter l'indentation
+                } else if (closeBlockKeywords.some(keyword => trimmedLine.startsWith(keyword))) {
+                    currentIndent = currentIndent.slice(0, -indent.length); // Réduire l'indentation
+                    formattedLines.push(currentIndent + trimmedLine); // Ajouter la ligne avec la nouvelle indentation
+                } else {
+                    formattedLines.push(currentIndent + trimmedLine); // Ajouter la ligne avec l'indentation actuelle
                 }
-            });
+            }
 
-            return formattedLines.join('\n'); // Rejoindre les lignes formatées en un seul bloc
+            return formattedLines.join('\n'); // Retourner le code formaté
         }
 
-        // Événement de clic pour formater le code
+        // Événement au clic sur le bouton pour formater le code
         formatButton.addEventListener('click', function() {
-            const formattedCode = formatLuaCode(editor.getValue()); // Obtenir le code formaté
-            editor.setValue(formattedCode); // Mettre à jour le CodeMirror avec le code formaté
+            const code = editor.getValue(); // Récupérer le code actuel
+            const formattedCode = formatLuaCode(code); // Formater le code
+            editor.setValue(formattedCode); // Mettre à jour CodeMirror avec le code formaté
         });
 
-        // Ajouter le bouton à la page
+        // Ajouter le bouton de mise à jour
+        const updateButton = document.createElement('button');
+        updateButton.textContent = 'Vérifier les mises à jour'; // Texte du bouton
+        updateButton.style.position = 'absolute'; // Positionnement absolu
+        updateButton.style.top = '140px'; // Position verticale
+        updateButton.style.right = '10px'; // Position horizontale
+        updateButton.style.zIndex = '9999'; // Assurer que le bouton est au-dessus de tout
+        updateButton.style.padding = '5px'; // Espacement interne
+        updateButton.style.backgroundColor = '#007bff'; // Couleur de fond du bouton
+        updateButton.style.color = 'white'; // Couleur du texte
+        updateButton.style.border = 'none'; // Pas de bordure
+        updateButton.style.borderRadius = '8px'; // Coins arrondis
+        updateButton.style.cursor = 'pointer'; // Curseur en main
+
+        // Événement au clic sur le bouton de mise à jour
+        updateButton.addEventListener('click', async function() {
+            const response = await fetch('https://api.github.com/repos/octador/srcipt-LUA-IDE/releases/latest');
+            if (response.ok) {
+                const data = await response.json(); // Récupérer les données de la dernière version
+                const latestVersion = data.tag_name; // Récupérer le numéro de version
+                const currentVersion = '2.1.5'; // Numéro de version actuelle
+
+                if (latestVersion !== currentVersion) {
+                    alert(`Une nouvelle version (${latestVersion}) est disponible! Vous pouvez la mettre à jour à partir de ${data.html_url}`);
+                } else {
+                    alert('Vous êtes à jour avec la dernière version.');
+                }
+            } else {
+                alert('Erreur lors de la vérification des mises à jour.');
+            }
+        });
+
+        // Ajouter les boutons au document
         document.body.appendChild(formatButton);
+        document.body.appendChild(updateButton);
     }
 
-    // Fonction pour vérifier les mises à jour
-    async function checkForUpdates() {
-        const response = await fetch('https://raw.githubusercontent.com/octador/srcipt-LUA-IDE/main/violentMonkey.js');
-        const latestScript = await response.text();
-        const latestVersionMatch = latestScript.match(/\/\/ @version\s+([\d.]+)/);
-        const latestVersion = latestVersionMatch ? latestVersionMatch[1] : null;
-
-        if (latestVersion && latestVersion > '2.1.4') { // Comparaison des versions
-            alert(`Une nouvelle version (v${latestVersion}) de l'IDE LUA est disponible !`);
-            // Code pour mettre à jour automatiquement si nécessaire
-        }
-    }
-
-    // Initialiser CodeMirror lorsque la page est complètement chargée
-    window.addEventListener('load', () => {
-        initializeCodeMirror();
-        checkForUpdates(); // Vérifier les mises à jour lors du chargement de la page
-    });
+    // Initialiser CodeMirror après le chargement de la page
+    window.addEventListener('load', initializeCodeMirror);
 })();
