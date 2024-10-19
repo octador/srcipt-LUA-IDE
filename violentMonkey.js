@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         IDE LUA
 // @namespace    http://tampermonkey1.net/
-// @version      2.1.61
+// @version      2.1.62
 // @description  Applique une coloration syntaxique avec CodeMirror dans MediaWiki avec gestion de la touche Tab, auto-complétion améliorée, mise en forme automatique, et vérification des mises à jour
 // @author       octador
 // @match        https://www.flow-vivantes.eu/RocketToMars/index.php?title=Module:*&action=edit
@@ -184,7 +184,7 @@
 
         // Événement au clic sur le bouton de mise à jour
 updateButton.addEventListener('click', async function() {
-    const response = await fetch('https://api.github.com/repos/octador/srcipt-LUA-IDE/releases/latest', {
+    const response = await fetch('https://api.github.com/repos/octador/script-LUA-IDE/releases/latest', {
         method: 'GET',
         headers: {
             'Accept': 'application/vnd.github.v3+json'
