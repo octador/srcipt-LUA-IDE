@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         IDE LUA
 // @namespace    http://tampermonkey1.net/
-// @version      2.1.9
+// @version      2.2.1
 // @description  Applique une coloration syntaxique avec CodeMirror dans MediaWiki avec gestion de la touche Tab, auto-complétion améliorée, mise en forme automatique, et vérification des mises à jour
 // @author       octador
 // @match        https://www.flow-vivantes.eu/RocketToMars/index.php?title=Module:*&action=edit
@@ -120,7 +120,7 @@
         // Ajouter le bouton pour formater le code
         const formatButton = document.createElement('button');
         formatButton.textContent = 'Formater le code Lua'; // Texte du bouton
-        formatButton.style.position = 'absolute'; // Positionnement absolu
+        formatButton.style.position = 'fixed'; // Positionnement absolu
         formatButton.style.top = '100px'; // Position verticale
         formatButton.style.right = '10px'; // Position horizontale
         formatButton.style.zIndex = '9999'; // Assurer que le bouton est au-dessus de tout
@@ -142,37 +142,38 @@
             const openBlockKeywords = ['function', 'if', 'for', 'while', 'repeat', '{'];
             const closeBlockKeywords = ['end', 'else', 'elseif', '}', 'until'];
 
-            // Parcourir chaque ligne de code
             for (let line of lines) {
-                const trimmedLine = line.trim(); // Supprimer les espaces en début et fin de ligne
+                // Supprimer les espaces inutiles au début de la ligne
+                line = line.trim();
 
-                // Ajouter indentation pour les blocs ouverts
-                if (openBlockKeywords.some(keyword => trimmedLine.startsWith(keyword))) {
-                    formattedLines.push(currentIndent + trimmedLine); // Ajouter la ligne avec l'indentation actuelle
+                // Gérer les ouvertures de blocs
+                if (openBlockKeywords.some(keyword => line.startsWith(keyword))) {
+                    formattedLines.push(currentIndent + line); // Ajouter la ligne formatée
                     currentIndent += indent; // Augmenter l'indentation
-                } else if (closeBlockKeywords.some(keyword => trimmedLine.startsWith(keyword))) {
+                } else if (closeBlockKeywords.some(keyword => line.startsWith(keyword))) {
                     currentIndent = currentIndent.slice(0, -indent.length); // Réduire l'indentation
-                    formattedLines.push(currentIndent + trimmedLine); // Ajouter la ligne avec la nouvelle indentation
+                    formattedLines.push(currentIndent + line); // Ajouter la ligne formatée
                 } else {
-                    formattedLines.push(currentIndent + trimmedLine); // Ajouter la ligne avec l'indentation actuelle
+                    formattedLines.push(currentIndent + line); // Ajouter la ligne formatée
                 }
             }
-
-            return formattedLines.join('\n'); // Retourner le code formaté
+            return formattedLines.join('\n'); // Rejoindre les lignes formatées
         }
 
-        // Événement au clic sur le bouton pour formater le code
-        formatButton.addEventListener('click', function() {
-            const code = editor.getValue(); // Récupérer le code actuel
-            const formattedCode = formatLuaCode(code); // Formater le code
-            editor.setValue(formattedCode); // Mettre à jour CodeMirror avec le code formaté
-        });
+// Événement au clic sur le bouton pour formater le code
+formatButton.addEventListener('click', function(event) {
+    event.preventDefault(); // Empêcher le comportement par défaut
+    const formattedCode = formatLuaCode(editor.getValue()); // Formater le code
+    editor.setValue(formattedCode); // Mettre à jour le CodeMirror avec le code formaté
+});
+        // Ajouter le bouton de formatage au DOM
+        editorDiv.parentNode.insertBefore(formatButton, editorDiv);
 
-        // Ajouter le bouton de mise à jour
+        // Ajouter le bouton pour vérifier les mises à jour
         const updateButton = document.createElement('button');
         updateButton.textContent = 'Vérifier les mises à jour'; // Texte du bouton
-        updateButton.style.position = 'absolute'; // Positionnement absolu
-        updateButton.style.top = '140px'; // Position verticale
+        updateButton.style.position = 'fixed'; // Positionnement absolu
+        updateButton.style.top = '150px'; // Position verticale
         updateButton.style.right = '10px'; // Position horizontale
         updateButton.style.zIndex = '9999'; // Assurer que le bouton est au-dessus de tout
         updateButton.style.padding = '5px'; // Espacement interne
@@ -182,30 +183,23 @@
         updateButton.style.borderRadius = '8px'; // Coins arrondis
         updateButton.style.cursor = 'pointer'; // Curseur en main
 
-        // Événement au clic sur le bouton de mise à jour
-updateButton.addEventListener('click', async function() {
-    const response = await fetch('https://api.github.com/repos/octador/srcipt-LUA-IDE/releases/latest');
+        // Événement pour le bouton de mise à jour
+        updateButton.addEventListener('click', async function() {
+            event.preventDefault();
+            const response = await fetch('https://api.github.com/repos/octador/srcipt-LUA-IDE/releases/latest');
+            const data = await response.json();
+            const latestVersion = data.tag_name; // Dernière version disponible
+            const currentVersion = GM_info.script.version; // Version actuelle
 
+            if (latestVersion !== currentVersion) {
+                alert(`Une nouvelle version (${latestVersion}) est disponible! Vous pouvez la mettre à jour à partir de ${data.html_url}`);
+            } else {
+                alert('Vous êtes à jour!');
+            }
+        });
 
-    if (response.ok) {
-        const data = await response.json(); // Récupérer les données de la dernière version
-        
-        const latestVersion = data.tag_name; // Récupérer le numéro de version
-        const currentVersion = '2.1.61'; // Numéro de version actuelle (assurez-vous qu'il est à jour)
-
-        if (latestVersion !== currentVersion) {
-            alert(`Une nouvelle version (${latestVersion}) est disponible! Vous pouvez la mettre à jour à partir de ${data.html_url}`);
-        } else {
-            alert('Vous êtes à jour avec la dernière version.');
-        }
-    } else {
-        alert('Erreur lors de la vérification des mises à jour.');
-    }
-});
-
-        // Ajouter les boutons au document
-        document.body.appendChild(formatButton);
-        document.body.appendChild(updateButton);
+        // Ajouter le bouton de mise à jour au DOM
+        editorDiv.parentNode.insertBefore(updateButton, editorDiv);
     }
 
     // Initialiser CodeMirror après le chargement de la page
