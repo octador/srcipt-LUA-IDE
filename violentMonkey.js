@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         IDE LUA
 // @namespace    http://tampermonkey1.net/
-// @version      2.0
+// @version      2.1
 // @description  Applique une coloration syntaxique avec CodeMirror dans MediaWiki avec gestion de la touche Tab, auto-complétion améliorée, mise en forme automatique, et vérification des mises à jour
 // @author       octador
 // @match        https://www.flow-vivantes.eu/RocketToMars/index.php?title=Module:*&action=edit
@@ -79,7 +79,7 @@
                 "xpcall", "error", "mw", "mw.title", "mw.smw", "mw.language", "mw.message",
                 "ask", "query", "property", "category", "template", "frame", "args", "title",
                 "page", "getCurrentTitle", "getContent", "getNamespace", "getPage", "getRevision",
-                "getArgs", "getArgsTable", "addMessage", "edit", "setData", "getData"            ];
+                "getArgs", "getArgsTable", "addMessage", "edit", "setData", "getData"];
 
             const cur = cm.getCursor(); // Récupérer la position du curseur
             const token = cm.getTokenAt(cur); // Récupérer le token à la position du curseur
@@ -161,10 +161,33 @@
         updateButton.style.borderRadius = '5px'; // Coins arrondis
         updateButton.style.cursor = 'pointer'; // Curseur en main
 
-        // Événement pour vérifier les mises à jour
-        updateButton.addEventListener('click', function() {
-            window.open('https://raw.githubusercontent.com/octador/srcipt-LUA-IDE/main/violentMonkey.js', '_blank'); // Ouvrir la page des mises à jour
+        // Événement pour vérifier et appliquer les mises à jour
+updateButton.addEventListener('click', function() {
+    // URL du fichier à jour
+    const updateUrl = 'https://raw.githubusercontent.com/octador/srcipt-LUA-IDE/main/violentMonkey.js';
+    
+    // Envoyer une requête pour récupérer le code mis à jour
+    fetch(updateUrl)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Erreur lors du téléchargement des mises à jour');
+            }
+            return response.text(); // Lire le contenu du fichier
+        })
+        .then(updatedCode => {
+            // Remplacer l'ancien script par le nouveau
+            const scriptTag = document.createElement('script');
+            scriptTag.textContent = updatedCode;
+            document.head.appendChild(scriptTag); // Ajouter le script mis à jour dans la page
+            
+            alert('Mise à jour appliquée avec succès !');
+        })
+        .catch(error => {
+            console.error('Erreur lors de la mise à jour :', error);
+            alert('La mise à jour a échoué. Veuillez réessayer.');
         });
+});
+
 
         // Ajouter le bouton à la page
         document.body.appendChild(updateButton);
