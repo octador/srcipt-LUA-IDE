@@ -183,26 +183,29 @@
         updateButton.style.cursor = 'pointer'; // Curseur en main
 
         // Événement au clic sur le bouton de mise à jour
-        updateButton.addEventListener('click', async function() {
-            const response = await fetch('https://github.com/octador/srcipt-LUA-IDE/blob/main/violentMonkey.js');
-            if (response.ok) {
-                const data = await response.json(); // Récupérer les données de la dernière version
-                console.log(data);
-                
-                const latestVersion = data.tag_name; // Récupérer le numéro de version
-                console.log(latestVersion);
-                
-                const currentVersion = '2.1.5'; // Numéro de version actuelle
+updateButton.addEventListener('click', async function() {
+    const response = await fetch('https://api.github.com/repos/octador/srcipt-LUA-IDE/releases/latest', {
+        method: 'GET',
+        headers: {
+            'Accept': 'application/vnd.github.v3+json'
+        }
+    });
 
-                if (latestVersion !== currentVersion) {
-                    alert(`Une nouvelle version (${latestVersion}) est disponible! Vous pouvez la mettre à jour à partir de ${data.html_url}`);
-                } else {
-                    alert('Vous êtes à jour avec la dernière version.');
-                }
-            } else {
-                alert('Erreur lors de la vérification des mises à jour.');
-            }
-        });
+    if (response.ok) {
+        const data = await response.json(); // Récupérer les données de la dernière version
+        
+        const latestVersion = data.tag_name; // Récupérer le numéro de version
+        const currentVersion = '2.1.61'; // Numéro de version actuelle (assurez-vous qu'il est à jour)
+
+        if (latestVersion !== currentVersion) {
+            alert(`Une nouvelle version (${latestVersion}) est disponible! Vous pouvez la mettre à jour à partir de ${data.html_url}`);
+        } else {
+            alert('Vous êtes à jour avec la dernière version.');
+        }
+    } else {
+        alert('Erreur lors de la vérification des mises à jour.');
+    }
+});
 
         // Ajouter les boutons au document
         document.body.appendChild(formatButton);
