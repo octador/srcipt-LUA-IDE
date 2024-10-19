@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         IDE LUA
 // @namespace    http://tampermonkey1.net/
-// @version      2.1
+// @version      2.1.1
 // @description  Applique une coloration syntaxique avec CodeMirror dans MediaWiki avec gestion de la touche Tab, auto-complétion améliorée, mise en forme automatique, et vérification des mises à jour
 // @author       octador
 // @match        https://www.flow-vivantes.eu/RocketToMars/index.php?title=Module:*&action=edit
@@ -124,7 +124,7 @@
         toggleButton.style.top = '60px'; // Position verticale
         toggleButton.style.right = '10px'; // Position horizontale
         toggleButton.style.zIndex = '9999'; // Assurer que le bouton est au-dessus de tout
-        toggleButton.style.padding = '10px'; // Espacement interne
+        toggleButton.style.padding = '5px'; // Espacement interne
         toggleButton.style.backgroundColor = '#007bff'; // Couleur de fond du bouton
         toggleButton.style.color = 'white'; // Couleur du texte
         toggleButton.style.border = 'none'; // Pas de bordure
@@ -154,7 +154,7 @@
         updateButton.style.top = '110px'; // Position verticale
         updateButton.style.right = '10px'; // Position horizontale
         updateButton.style.zIndex = '9999'; // Assurer que le bouton est au-dessus de tout
-        updateButton.style.padding = '10px'; // Espacement interne
+        updateButton.style.padding = '5px'; // Espacement interne
         updateButton.style.backgroundColor = '#28a745'; // Couleur de fond du bouton
         updateButton.style.color = 'white'; // Couleur du texte
         updateButton.style.border = 'none'; // Pas de bordure
@@ -199,7 +199,7 @@ updateButton.addEventListener('click', function() {
         formatButton.style.top = '160px'; // Position verticale
         formatButton.style.right = '10px'; // Position horizontale
         formatButton.style.zIndex = '9999'; // Assurer que le bouton est au-dessus de tout
-        formatButton.style.padding = '10px'; // Espacement interne
+        formatButton.style.padding = '5px'; // Espacement interne
         formatButton.style.backgroundColor = '#ffc107'; // Couleur de fond du bouton
         formatButton.style.color = 'black'; // Couleur du texte
         formatButton.style.border = 'none'; // Pas de bordure
