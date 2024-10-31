@@ -21,6 +21,7 @@
 (function() {
     'use strict';
 
+
     // Ajouter les styles CSS de CodeMirror et de ses addons
     GM_addStyle('@import url("https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/codemirror.min.css");');
     GM_addStyle('@import url("https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/addon/hint/show-hint.min.css");');
