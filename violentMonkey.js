@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         IDE LUA
 // @namespace    http://tampermonkey1.net/
-// @version      2.2.2
+// @version      2.2.4
 // @description  Applique une coloration syntaxique avec CodeMirror dans MediaWiki avec gestion de la touche Tab, auto-complétion améliorée, mise en forme automatique, et vérification des mises à jour
 // @author       octador
 // @match        https://www.flow-vivantes.eu/RocketToMars/index.php?title=Module:*&action=edit
@@ -20,7 +20,6 @@
 
 (function() {
     'use strict';
-
 
     // Ajouter les styles CSS de CodeMirror et de ses addons
     GM_addStyle('@import url("https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/codemirror.min.css");');
@@ -201,6 +200,164 @@ formatButton.addEventListener('click', function(event) {
 
         // Ajouter le bouton de mise à jour au DOM
         editorDiv.parentNode.insertBefore(updateButton, editorDiv);
+      // Fonction complète pour rechercher un mot dans CodeMirror avec une invite utilisateur
+
+
+// Ajoutez un champ de saisie pour la recherche
+const searchInput = document.createElement('input');
+searchInput.placeholder = 'Entrez le mot à rechercher...'; // Texte d'espace réservé
+searchInput.style.position = 'fixed'; // Positionnement absolu
+searchInput.style.top = '200px'; // Position verticale
+searchInput.style.right = '10px'; // Position horizontale
+searchInput.style.zIndex = '9999'; // Assurer que le champ est au-dessus de tout
+searchInput.style.padding = '5px'; // Espacement interne
+searchInput.style.borderRadius = '4px'; // Coins arrondis
+searchInput.style.width = '200px'; // Largeur du champ
+
+// Ajouter le champ de saisie au DOM
+document.body.appendChild(searchInput);
+
+// Créer un élément pour afficher le nombre d'occurrences
+const countDisplay = document.createElement('div');
+countDisplay.style.position = 'fixed'; // Positionnement absolu
+countDisplay.style.top = '235px'; // Position verticale (juste en dessous du champ de saisie)
+countDisplay.style.right = '10px'; // Position horizontale
+countDisplay.style.zIndex = '9999'; // Assurer que le texte est au-dessus de tout
+countDisplay.style.padding = '5px'; // Espacement interne
+countDisplay.style.backgroundColor = 'rgba(255, 255, 255, 0.8)'; // Fond semi-transparent
+countDisplay.style.borderRadius = '4px'; // Coins arrondis
+
+// Ajouter le texte initial pour le compteur
+countDisplay.textContent = 'Occurrences trouvées : 0';
+document.body.appendChild(countDisplay); // Ajouter au DOM
+
+// Variables pour stocker les positions trouvées et l'index courant
+let foundPositions = [];
+let currentIndex = -1; // Indice de l'occurrence courante
+
+// Ajouter des boutons pour naviguer entre les occurrences
+const prevButton = document.createElement('button');
+prevButton.textContent = '⮜ Précédent'; // Texte du bouton précédent
+prevButton.style.position = 'fixed';
+prevButton.style.top = '265px'; // Position verticale
+prevButton.style.right = '110px'; // Position horizontale
+prevButton.style.zIndex = '9999'; // Assurer que le bouton est au-dessus de tout
+prevButton.style.padding = '5px';
+prevButton.style.backgroundColor = '#ffc107'; // Couleur de fond
+prevButton.style.color = 'white'; // Couleur du texte
+prevButton.style.border = 'none';
+prevButton.style.borderRadius = '4px';
+prevButton.style.cursor = 'pointer';
+prevButton.disabled = true; // Désactiver par défaut
+
+const nextButton = document.createElement('button');
+nextButton.textContent = 'Suivant ⮞'; // Texte du bouton suivant
+nextButton.style.position = 'fixed';
+nextButton.style.top = '265px'; // Position verticale
+nextButton.style.right = '10px'; // Position horizontale
+nextButton.style.zIndex = '9999'; // Assurer que le bouton est au-dessus de tout
+nextButton.style.padding = '5px';
+nextButton.style.backgroundColor = '#007bff'; // Couleur de fond
+nextButton.style.color = 'white'; // Couleur du texte
+nextButton.style.border = 'none';
+nextButton.style.borderRadius = '4px';
+nextButton.style.cursor = 'pointer';
+nextButton.disabled = true; // Désactiver par défaut
+
+// Ajouter les boutons au DOM
+      document.body.appendChild(nextButton);
+      document.body.appendChild(prevButton);
+
+
+// Variable pour stocker les positions trouvées
+foundPositions = [];
+
+// Fonction pour rechercher les mots à chaque entrée
+searchInput.addEventListener('input', function() {
+    const query = searchInput.value; // Récupérer la valeur du champ
+
+    // Réinitialiser les positions trouvées et l'index courant
+    foundPositions = [];
+    currentIndex = -1; // Réinitialiser l'indice
+
+    // Si le champ est vide, enlever les surlignements et quitter
+    if (!query) {
+        editor.getAllMarks().forEach(mark => mark.clear()); // Enlever les surlignements
+        countDisplay.textContent = 'Occurrences trouvées : 0'; // Réinitialiser le compteur
+        prevButton.disabled = true; // Désactiver le bouton précédent
+        nextButton.disabled = true; // Désactiver le bouton suivant
+        return; // Quitter la fonction
+    }
+
+    // Récupérer le texte actuel dans CodeMirror
+    const currentText = editor.getValue();
+
+    // Utiliser une expression régulière pour trouver toutes les occurrences
+    const regex = new RegExp(query, 'gi'); // 'g' pour global et 'i' pour insensible à la casse
+    let match;
+
+    while ((match = regex.exec(currentText)) !== null) {
+        const from = editor.posFromIndex(match.index);
+        const to = editor.posFromIndex(match.index + match[0].length);
+        foundPositions.push({ from, to }); // Stocker les positions
+    }
+
+    // Mettre à jour le compteur d'occurrences
+    countDisplay.textContent = `Occurrences trouvées : ${foundPositions.length}`; // Afficher le nombre trouvé
+
+    // Surligner toutes les occurrences trouvées
+    highlightMatches();
+
+    // Activer ou désactiver les boutons de navigation
+    prevButton.disabled = foundPositions.length === 0; // Désactiver si aucune occurrence
+    nextButton.disabled = foundPositions.length === 0; // Désactiver si aucune occurrence
+});
+
+// Fonction pour surligner les mots trouvés
+function highlightMatches() {
+    // Enlever les surlignements précédents
+    editor.getAllMarks().forEach(mark => mark.clear());
+
+    // Surligner toutes les occurrences trouvées
+    foundPositions.forEach(position => {
+        editor.markText(position.from, position.to, { className: 'highlight' }); // Surligner
+    });
+}
+
+// Fonction pour naviguer à l'occurrence précédente
+prevButton.addEventListener('click', function() {
+    if (foundPositions.length === 0) return; // Quitter si aucune occurrence
+
+    currentIndex = (currentIndex - 1 + foundPositions.length) % foundPositions.length; // Calculer l'indice précédent
+    highlightCurrentMatch(); // Mettre à jour le surlignement
+});
+
+// Fonction pour naviguer à l'occurrence suivante
+nextButton.addEventListener('click', function() {
+    if (foundPositions.length === 0) return; // Quitter si aucune occurrence
+
+    currentIndex = (currentIndex + 1) % foundPositions.length; // Calculer l'indice suivant
+    highlightCurrentMatch(); // Mettre à jour le surlignement
+});
+
+// Fonction pour surligner l'occurrence courante
+function highlightCurrentMatch() {
+    // Enlever les surlignements précédents
+    editor.getAllMarks().forEach(mark => mark.clear());
+
+    // Surligner l'occurrence courante
+    const position = foundPositions[currentIndex];
+    editor.markText(position.from, position.to, { className: 'highlight-current' }); // Surligner
+
+    // Faire défiler jusqu'à l'occurrence courante
+    editor.scrollIntoView(position.from, 100); // Fait défiler jusqu'à la position
+}
+
+// Ajouter des styles CSS pour le surlignement
+GM_addStyle('.highlight { background-color: yellow; }'); // Surlignement en jaune
+GM_addStyle('.highlight-current { background-color: orange; font-weight: bold; }'); // Surlignement de l'occurrence courante
+
+
     }
 
     // Initialiser CodeMirror après le chargement de la page
